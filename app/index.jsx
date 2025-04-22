@@ -13,25 +13,57 @@ export default function Cadastro() {
     const [senha, setSenha] = useState('Ex12345@');
     const [erroSenha, setErroSenha] = useState(false);
 
-    const [confirmarSenha, setConfirmarSenha] = useState('Ex12345@');
-    const [erroConfirmacao, setErroConfirmacao] = useState(false);
+    const [Senha2, setSenha2] = useState('Ex12345@');
+    const [erroSenha2, setErroSenha2] = useState(false);
 
     const [senhaVisivel, setSenhaVisivel] = useState(true);
-    const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(true);
+    const [Senha2Visivel, setSenha2Visivel] = useState(true);
 
     const [formularioValido, setFormularioValido] = useState(true);
 
-    useEffect(() => {
-        const emailValido = email.includes('@') && email.length >= 5;
-        const senhaValida = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{5,8}$/.test(senha);
-        const confirmacaoValida = senha === confirmarSenha;
+        useEffect(()=>{
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+            
+            if(senha === 'Ex12345@')
+            {
+                setFormularioValido(true)
+            }
+            else if(passwordRegex.test(senha)){
+                setErroSenha(false)
+                setFormularioValido(false)
+            }
+            else
+            {
+                setErroSenha(true)
+                setFormularioValido(true)
+            }
+        }, [senha])
 
-        setErroEmail(!emailValido);
-        setErroSenha(!senhaValida);
-        setErroConfirmacao(!confirmacaoValida);
+        useEffect(()=>{
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if(email === 'exemplo@exemplo.com'){
+                setFormularioValido(true)
+            }
+            else if(emailRegex.test(email)){
+                setErroEmail(false)
+                setFormularioValido(false)
+            }
+            else{
+                setErroEmail(true)
+                setFormularioValido(true)
+            }
+        }, [email])
 
-        setFormularioValido(emailValido && senhaValida && confirmacaoValida);
-    }, [email, senha, confirmarSenha]);
+        useEffect(()=>{
+            if(senha === Senha2){
+                setErroSenha2(false)
+            }   
+            else{
+                setErroSenha2(true)
+            }
+        }, [senha, Senha2])
+    
 
     async function cadastrar() {
         try {
@@ -40,12 +72,25 @@ export default function Cadastro() {
                 email: email,
                 senha: senha
             });
-            
-            Alert.alert('Sucesso', 'Cadastrado com sucesso!');
+            if(resposta.status === 201){
+                alert('Cadastrado com sucesso!');
+            }
+
             }
         catch (error) {
-            console.error(error);
-            Alert.alert('Erro', 'Erro ao cadastrar usuário.');
+            if (error.response) {
+                if (error.response.status === 409){
+                    alert("Este email já está cadastrado.");
+                }
+                else if (error.response.status === 500){
+                    alert("Erro inesperado no servidor. Tente novamente mais tarde.");
+                } 
+                else{
+                    alert(`Erro ao cadastrar: ${error.response.status}`);
+                }
+            } else {
+                alert("Erro de conexão. Verifique sua internet.");
+            }
         }
     }
 
@@ -62,7 +107,7 @@ export default function Cadastro() {
                             onChangeText={text => setEmail(text)}
                         />
                     </ContainerTextInput>
-                    {erroEmail && <TextErrorHint>E-mail inválido</TextErrorHint>}
+                    {erroEmail ? <TextErrorHint>E-mail inválido</TextErrorHint> : null}
                 </View>
 
                 <View>
@@ -77,28 +122,30 @@ export default function Cadastro() {
                             <StyledIcon name={senhaVisivel ? "eye" : "eye-with-line"} size={24} color="black" />
                         </Pressable>
                     </ContainerTextInput>
-                    {erroSenha && <TextErrorHint>Senha inválida</TextErrorHint>}
+                    {erroSenha ? <TextErrorHint>Senha inválida</TextErrorHint> : null}
                 </View>
 
                 <View>
                     <Texto>Confirme sua senha</Texto>
-                    <ContainerTextInput error={erroConfirmacao}>
+                    <ContainerTextInput error={erroSenha2}>
                         <InputTexto
                             placeholder="Repita a senha"
-                            onChangeText={text => setConfirmarSenha(text)}
-                            secureTextEntry={confirmarSenhaVisivel}
+                            onChangeText={text => setSenha2(text)}
+                            secureTextEntry={Senha2Visivel}
                         />
-                        <Pressable onPress={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}>
-                            <StyledIcon name={confirmarSenhaVisivel ? "eye" : "eye-with-line"} size={24} color="black" />
+                        <Pressable onPress={() => setSenha2Visivel(!Senha2Visivel)}>
+                            <StyledIcon name={Senha2Visivel ? "eye" : "eye-with-line"} size={24} color="black" />
                         </Pressable>
                     </ContainerTextInput>
-                    {erroConfirmacao && <TextErrorHint>Senhas diferentes</TextErrorHint>}
+                    {erroSenha2 ? <TextErrorHint>Senhas diferentes</TextErrorHint> : null}
                 </View>
             </ContainerCampoTexto>
 
             <ContainerBotoes>
-                <Botao disabled={formularioValido} onPress={()=>{
-                    cadastrar()}}>
+                <Botao disabled={formularioValido} 
+                    onPress={()=>{
+                    cadastrar()
+                    }}>
                     <TextoBotao>Criar minha conta</TextoBotao>
                 </Botao>
             </ContainerBotoes>
